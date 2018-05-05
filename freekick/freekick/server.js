@@ -1,13 +1,5 @@
-﻿var net = require("net");
+﻿var io = require('socket.io')(process.env.PORT || 3010);
 var http = require('http');
-
-var server = net.createServer();
-var StringDecoder = require('string_decoder').StringDecoder;
-
-var _ip = "188.253.2.147";
-
-var _port = 3015;
-
 
 console.log('server started');
 
@@ -39,121 +31,85 @@ rooms[6] = [];
     }, 3600000);
 })();
 
-try {
-    var decoder = new StringDecoder('utf8');
-    server.on('connection', function (socket) {
+io.on('connection', function (socket) {
 
-            socket.on('setPlayer', function (data) {
+    console.log('client coneccted' );
+    socket.emit('connectToServer', { result: "connected" });
 
-                if (data && data.byteLength != undefined) {
-                    data = new Buffer(data).toString('utf8');
+    var id = -1;
+    var mysocket = null;
+    socket.on("setPlayer", function (data) {
+
+        id = data.id;
+        mysocket = socket;
+
+        var userData = { id: data.id, myName: data.myName, socket: mysocket};
+
+        console.log("connect To Server by id:" + data.id);
+
+        if (id>0) {
+            players[id] = userData;
+            var sendData = { result:"ok",id: id};
+            socket.emit("addedToServer", datal);
+        }
+    });
+
+    socket.on('disconnect', function (data) {
+        console.log("disconnected id: " + data.id)
+        myid = thisClientId;
+
+        for (i = 0; i < playersArr.length; i++) {
+            for (j = 0; j < playersArr[i].length; j++) {
+                if (playersArr[i][j] == myid) {
+                    playersArr[i].splice(j, 1);
+                    socksArr[i].splice(j, 1);
+                    playersNameArr[i].splice(j, 1);
+                    playersAvatarArr[i].splice(j, 1);
+
+                    var counts = [];
+                    for (k = 0; k < playersArr.length; k++) {
+                        counts.push(playersArr[k].length);
+                    }
+                    var dt = { counts: counts };
+
+                    for (k = 0; k < socksArr.length; k++) {
+                        var sc = socksArr[k];
+                        sc.forEach(function (item, index, arr) {
+
+                            item.emit("roomPlayersCount", dt);
+
+                        });
+                    }
+
+                    console.log('disconnected', thisClientId);
+                    return;
                 }
-                //console.log('data: ' + data);
+            }
+        }
 
-                var dt = JSON.parse(data);
-
-                id = dt.id;
-                mysocket = socket;
-
-                var userData = { id: dt.id, myName: dt.myName, socket: mysocket };
-
-                console.log("connect To Server by id:" + dt.id);
-
-                if (id > 0) {
-                    players[id] = userData;
-                    var sendData = { result: "ok", id: id };
-                    socket.emit("addedToServer", datal);
+        for (i = 0; i < leagues.length; i++) {
+            for (j = 0; j < leaguesPlayersArr[i].length; j++) {
+                if (leaguesPlayersArr[i][j] == thisClientId) {
+                    leaguesPlayersArr[i].splice(j, 1);
+                    leagueSocksArr[i].splice(j, 1);
+                    leaguesPlayersNameArr[i].splice(j, 1);
+                    leaguesPlayersAvatarArr[i].splice(j, 1);
                 }
+            }
 
-            });
+            var count = leaguesPlayersArr[i].length;
+            var datal = { counts: count, playerName: leaguesPlayersNameArr[i] };
+            //console.log(datal);
+            for (k = 0; k < leagueSocksArr[i].length; k++) {
+                leagueSocksArr[i][k].emit("OnGetLeaguePlayerCount", datal);
+            }
+        }
+
+
 
     });
-    server.listen(_port, _ip);
-}
-catch (e) {
-    console.log("6: " + e.message);
-}
 
-
-//io.on('connection', function (socket) {
-
-//    console.log('client coneccted' );
-//    socket.emit('connectToServer', { result: "connected" });
-
-//    var id = -1;
-//    var mysocket = null;
-//    socket.on("setPlayer", function (data) {
-
-//        id = data.id;
-//        mysocket = socket;
-
-//        var userData = { id: data.id, myName: data.myName, socket: mysocket};
-
-//        console.log("connect To Server by id:" + data.id);
-
-//        if (id>0) {
-//            players[id] = userData;
-//            var sendData = { result:"ok",id: id};
-//            socket.emit("addedToServer", datal);
-//        }
-//    });
-
-//    socket.on('disconnect', function (data) {
-//        console.log("disconnected id: " + data.id)
-//        myid = thisClientId;
-
-//        for (i = 0; i < playersArr.length; i++) {
-//            for (j = 0; j < playersArr[i].length; j++) {
-//                if (playersArr[i][j] == myid) {
-//                    playersArr[i].splice(j, 1);
-//                    socksArr[i].splice(j, 1);
-//                    playersNameArr[i].splice(j, 1);
-//                    playersAvatarArr[i].splice(j, 1);
-
-//                    var counts = [];
-//                    for (k = 0; k < playersArr.length; k++) {
-//                        counts.push(playersArr[k].length);
-//                    }
-//                    var dt = { counts: counts };
-
-//                    for (k = 0; k < socksArr.length; k++) {
-//                        var sc = socksArr[k];
-//                        sc.forEach(function (item, index, arr) {
-
-//                            item.emit("roomPlayersCount", dt);
-
-//                        });
-//                    }
-
-//                    console.log('disconnected', thisClientId);
-//                    return;
-//                }
-//            }
-//        }
-
-//        for (i = 0; i < leagues.length; i++) {
-//            for (j = 0; j < leaguesPlayersArr[i].length; j++) {
-//                if (leaguesPlayersArr[i][j] == thisClientId) {
-//                    leaguesPlayersArr[i].splice(j, 1);
-//                    leagueSocksArr[i].splice(j, 1);
-//                    leaguesPlayersNameArr[i].splice(j, 1);
-//                    leaguesPlayersAvatarArr[i].splice(j, 1);
-//                }
-//            }
-
-//            var count = leaguesPlayersArr[i].length;
-//            var datal = { counts: count, playerName: leaguesPlayersNameArr[i] };
-//            //console.log(datal);
-//            for (k = 0; k < leagueSocksArr[i].length; k++) {
-//                leagueSocksArr[i][k].emit("OnGetLeaguePlayerCount", datal);
-//            }
-//        }
-
-
-
-//    });
-
-//});
+});
 
 
 function GetLeagues() {
