@@ -33,8 +33,8 @@ rooms[6] = [];
 
 io.on('connection', function (socket) {
 
-    console.log('client coneccted, id: ', thisClientId);
-    socket.emit('connectToServer', { id: thisClientId });
+    console.log('client coneccted' );
+    socket.emit('connectToServer', { result: "connected" });
 
     var id = -1;
     var mysocket = null;
