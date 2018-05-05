@@ -1,0 +1,9 @@
+{
+  "name": "freekick",
+  "version": "0.0.0",
+  "description": "freekick",
+  "main": "server.js",
+  "author": {
+    "name": "ARP"
+  }
+}
