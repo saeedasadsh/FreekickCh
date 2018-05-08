@@ -28,7 +28,7 @@ rooms[6] = [];
         //do thing
         //GetLeagues();
         //
-        consolde.log("hi");
+        console.log("hi");
     }, 30000);
 })();
 
