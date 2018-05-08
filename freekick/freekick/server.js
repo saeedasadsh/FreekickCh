@@ -28,7 +28,8 @@ rooms[6] = [];
         //do thing
         //GetLeagues();
         //
-    }, 3600000);
+        consolde.log("hi");
+    }, 30000);
 })();
 
 io.on('connection', function (socket) {
