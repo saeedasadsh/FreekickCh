@@ -51,13 +51,13 @@ io.on('connection', function (socket) {
         if (id>0) {
             players[id] = userData;
             var sendData = { result:"ok",id: id};
-            socket.emit("addedToServer", datal);
+            socket.emit("addedToServer", sendData);
         }
     });
 
     socket.on('disconnect', function (data) {
         console.log("disconnected id: " + data.id)
-        myid = thisClientId;
+        myid =id;
 
         for (i = 0; i < playersArr.length; i++) {
             for (j = 0; j < playersArr[i].length; j++) {
@@ -82,7 +82,7 @@ io.on('connection', function (socket) {
                         });
                     }
 
-                    console.log('disconnected', thisClientId);
+                    console.log('disconnected', id);
                     return;
                 }
             }
@@ -90,7 +90,7 @@ io.on('connection', function (socket) {
 
         for (i = 0; i < leagues.length; i++) {
             for (j = 0; j < leaguesPlayersArr[i].length; j++) {
-                if (leaguesPlayersArr[i][j] == thisClientId) {
+                if (leaguesPlayersArr[i][j] == id) {
                     leaguesPlayersArr[i].splice(j, 1);
                     leagueSocksArr[i].splice(j, 1);
                     leaguesPlayersNameArr[i].splice(j, 1);
