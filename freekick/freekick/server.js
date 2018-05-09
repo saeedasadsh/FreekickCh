@@ -1,4 +1,4 @@
-﻿var io = require('socket.io')(process.env.PORT || 3015);
+﻿var io = require('socket.io')(process.env.PORT || 3010);
 var http = require('http');
 
 console.log('server started');
