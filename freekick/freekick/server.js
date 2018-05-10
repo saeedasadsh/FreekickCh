@@ -18,6 +18,10 @@ var s = net.Server(function (socket) {
     socket.on('data', function (msg_sent) {
         // Loop through all of our sockets and send the data
         console.log(msg_sent);
+        if (msg_sent && msg_sent.byteLength != undefined) {
+            msg_sent = new Buffer(msg_sent).toString('utf8');
+        }
+        console.log(msg_sent);
         for (var i = 0; i < sockets.length; i++) {
             // Don't send the data back to the original sender
             if (sockets[i] == socket) // don't send the message to yourself
