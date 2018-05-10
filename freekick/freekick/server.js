@@ -61,9 +61,9 @@ s.listen(3015);
 console.log('System waiting');
 
 function testRec() {
+    console.log("hi")
     for (var i=0; i < sockets.length; i++)
     {
-        console.log("hi")
         sockets[i].write("hi");
     }
 }
