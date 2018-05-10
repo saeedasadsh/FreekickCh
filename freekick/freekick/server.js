@@ -1,5 +1,7 @@
 ﻿var io = require('socket.io').listen(3015);
 
+console.log("server started");
+
 io.sockets.on('connection', function (socket) {
     io.sockets.emit('this', { will: 'be received by everyone' });
 
