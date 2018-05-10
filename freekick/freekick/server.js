@@ -1,10 +1,11 @@
-﻿net = require('net')
-
+﻿var io = require('socket.io')(process.env.PORT || 3015);
+var http = require('http');
+console.log('server started');
 // Supports multiple client chat application
 
 // Keep a pool of sockets ready for everyone
 // Avoid dead sockets by responding to the 'end' event
-var sockets = [];
+var players = [];
 
 (function () {
 
@@ -22,48 +23,35 @@ var sockets = [];
 })();
 
 
-// Create a TCP socket listener
-var s = net.Server(function (socket) {
-
-    // Add the new client socket connection to the array of
-    // sockets
-    sockets.push(socket);
-    //console.log(socket);
-    // 'data' is an event that means that a message was just sent by the 
-    // client application
-    socket.on('data', function (msg_sent) {
-        // Loop through all of our sockets and send the data
-        if (msg_sent && msg_sent.byteLength != undefined) {
-            msg_sent = new Buffer(msg_sent).toString('utf8');
-        }
-        console.log(msg_sent);
-        sockets.push(socket);
-        socket.write(msg_sent);
-        //for (var i = 0; i < sockets.length; i++) {
-        //    // Don't send the data back to the original sender
-        //    if (sockets[i] == socket) // don't send the message to yourself
-        //        continue;
-        //    // Write the msg sent by chat client
-        //    sockets[i].write(msg_sent);
-        //}
-    });
-    // Use splice to get rid of the socket that is ending.
-    // The 'end' event means tcp client has disconnected.
-    socket.on('end', function () {
-        var i = sockets.indexOf(socket);
-        sockets.splice(i, 1);
-    });
-
-
-});
-
-s.listen(3015);
-console.log('System waiting');
 
 function testRec() {
     console.log("hi")
-    for (var i=0; i < sockets.length; i++)
+    for (var i = 0; i < players.length; i++)
     {
-        sockets[i].write("hi");
+
+        players[i].write("hi");
     }
 }
+
+io.on('connection', function (socket) {
+
+    console.log('client coneccted ');
+    socket.emit("setYourId", "setYourId");
+
+    socket.on("setPlayer", function (data) {
+        var id = data.id;
+        var playerName = data.playerName;
+        var sock = socket;
+        var userData = { id: id, playerName: playerName, MySocket: sock };
+        players[id] = userData;
+    });
+
+    socket.on('disconnectFromServer', function (data) {
+        console.log("disconnectFromServer id: " + data.id)
+    });
+
+    socket.on('disconnect', function (data) {
+        console.log("disconnected id: " + data.id)
+    });
+
+});
