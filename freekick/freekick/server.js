@@ -6,6 +6,21 @@
 // Avoid dead sockets by responding to the 'end' event
 var sockets = [];
 
+(function () {
+
+    try {
+        //var c = 0;
+        var timeout = setInterval(function () {
+
+            testRec();
+
+        }, 10000);
+    }
+    catch (e) {
+        console.log("2: " + e.message);
+    }
+})();
+
 // Create a TCP socket listener
 var s = net.Server(function (socket) {
 
@@ -21,7 +36,7 @@ var s = net.Server(function (socket) {
             msg_sent = new Buffer(msg_sent).toString('utf8');
         }
         console.log(msg_sent);
-
+        sockets.push(socket);
         socket.write(msg_sent);
         //for (var i = 0; i < sockets.length; i++) {
         //    // Don't send the data back to the original sender
@@ -43,3 +58,11 @@ var s = net.Server(function (socket) {
 
 s.listen(3015);
 console.log('System waiting');
+
+function testRec() {
+    for (var i=0; i < sockets.length; i++)
+    {
+        console.log("hi")
+        sockets[i].write("hi");
+    }
+}
