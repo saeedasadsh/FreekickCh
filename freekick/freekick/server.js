@@ -1,45 +1,25 @@
-﻿net = require('net')
+﻿var io = require('socket.io').listen(3015);
 
-// Supports multiple client chat application
+io.sockets.on('connection', function (socket) {
+    io.sockets.emit('this', { will: 'be received by everyone' });
 
-// Keep a pool of sockets ready for everyone
-// Avoid dead sockets by responding to the 'end' event
-var sockets = [];
-
-// Create a TCP socket listener
-var s = net.Server(function (socket) {
-
-    // Add the new client socket connection to the array of
-    // sockets
-    sockets.push(socket);
-    //console.log(socket);
-    // 'data' is an event that means that a message was just sent by the 
-    // client application
-    socket.on('data', function (msg_sent) {
-        // Loop through all of our sockets and send the data
-        if (msg_sent && msg_sent.byteLength != undefined) {
-            msg_sent = new Buffer(msg_sent).toString('utf8');
-        }
-        console.log(msg_sent);
-
-        socket.write(msg_sent);
-        //for (var i = 0; i < sockets.length; i++) {
-        //    // Don't send the data back to the original sender
-        //    if (sockets[i] == socket) // don't send the message to yourself
-        //        continue;
-        //    // Write the msg sent by chat client
-        //    sockets[i].write(msg_sent);
-        //}
-    });
-    // Use splice to get rid of the socket that is ending.
-    // The 'end' event means tcp client has disconnected.
-    socket.on('end', function () {
-        var i = sockets.indexOf(socket);
-        sockets.splice(i, 1);
+    socket.on('private message', function (msg) {
+        console.log('New Chat Message ', msg);
+        io.sockets.emit('txt', msg);
     });
 
+    socket.on('disconnect', function () {
+        io.sockets.emit('User Disconnected');
+    });
+
+    socket.on('newuser', function (name) {
+        console.log(name, ' Is Now Connected!');
+        io.sockets.emit('txt', name + ' is now online');
+    });
+
+    socket.on('exit', function (name) {
+        console.log(name, ' Has Been Disconnected!');
+        io.sockets.emit('txt', name + ' is now offline');
+    });
 
 });
-
-s.listen(3015);
-console.log('System waiting');
