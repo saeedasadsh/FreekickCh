@@ -12,7 +12,7 @@ var s = net.Server(function (socket) {
     // Add the new client socket connection to the array of
     // sockets
     sockets.push(socket);
-
+    console.log(socket);
     // 'data' is an event that means that a message was just sent by the 
     // client application
     socket.on('data', function (msg_sent) {
