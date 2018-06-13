@@ -1,27 +1,303 @@
 ﻿var io = require('socket.io')(process.env.PORT || 3015);
 var http = require('http');
-console.log('server started');
-// Supports multiple client chat application
 
-// Keep a pool of sockets ready for everyone
-// Avoid dead sockets by responding to the 'end' event
+console.log('server started');
 var players = [];
+
+var ShootingGame = [];
+var FreekickGame = [];
+
+ShootingGame[1] = { players: [] };
+ShootingGame[2] = { players: [] };
+ShootingGame[3] = { players: [] };
+ShootingGame[4] = { players: [] };
+ShootingGame[5] = { players: [] };
+ShootingGame[6] = { players: [] };
+
+FreekickGame[1] = { players: [] };
+FreekickGame[2] = { players: [] };
+FreekickGame[3] = { players: [] };
+FreekickGame[4] = { players: [] };
+FreekickGame[5] = { players: [] };
+FreekickGame[6] = { players: [] };
 
 io.on('connection', function (socket) {
 
-    console.log('client coneccted ');
-    socket.emit("setYourId", "setYourId");
+    console.log('client coneccted');
+    socket.emit('connectToServer', { res: "ok" });
 
-    socket.on("setPlayer", function (data) {
-        var id = data.id;
-        var playerName = data.playerName;
-        var sock = socket;
-        var userData = { id: id, playerName: playerName, MySocket: sock };
-        players[id] = userData;
+    var id = -1;
+    var level = -1;
+    var partnerId = -1;
+    var GameTier = -1;
+    var GameType = "";
+
+    socket.on("tellType", function (data) {
+        try {
+            id = data.id;
+            level = data.level;
+            var playerName = data.playerName;
+            var seconds = new Date().getTime() / 1000;
+            var dt = { id: id, playerName: playerName, mySocket: socket, Alive: seconds, level: level, plReady: 0 };
+
+            players[id] = dt;
+        }
+        catch (e) {
+            console.log("tellType: "+e.message);
+        }
+    });
+
+    socket.on('checkAlive', function (data) {
+        //console.log("checkAlive id: " + id);
+        try {
+            var seconds = new Date().getTime() / 1000;
+            players[id].Alive = seconds;
+            socket.emit("Alive", data);
+        }
+        catch (e) {
+            console.log("checkAlive: "+e.message);
+        }
+    });
+
+    socket.on('disconnectFromServer', function (data) {
+        console.log("disconnectFromServer ");
     });
 
     socket.on('disconnect', function (data) {
-        console.log("disconnected id: " + data.id)
+        try {
+            console.log("disconnected ");
+
+            players.splice(id, 1);
+            if (GameTier > 0) {
+                if (GameType == "sh") {
+                    ShootingGame[GameTier].players.splice(id, 1);
+                }
+                else {
+                    FreekickGame[GameTier].players.splice(id, 1);
+                }
+            }
+        }
+        catch (e) {
+            console.log("disconnect: "+e.message);
+        }
+    });
+
+
+    socket.on('getPlayersCount', function (data) {
+        try {
+            var dt = {
+                sh1: ShootingGame[1].players.length, sh2: ShootingGame[2].players.length, sh3: ShootingGame[3].players.length, sh4: ShootingGame[4].players.length, sh5: ShootingGame[5].players.length, sh6: ShootingGame[6].players.length,
+                fr1: FreekickGame[1].players.length, fr2: FreekickGame[2].players.length, fr3: FreekickGame[3].players.length, fr4: FreekickGame[4].players.length, fr5: FreekickGame[5].players.length, fr6: FreekickGame[6].players.length
+            };
+            //console.log(dt);
+            socket.emit("playerCountResult", dt);
+        }
+        catch (e) {
+            console.log("getPlayersCount: "+e.message);
+        }
+    });
+
+    socket.on('ChooseGame', function (data) {
+        try {
+            // console.log(data);
+            GameType = data.GameType;
+            GameTier = data.GameTier;
+            var pfk = data.fk;
+            var pgk = data.gk;
+            var ball = data.ball;
+            var plpower = data.plpower;
+            var playerVal = data.playerVal;
+
+            var dt = { id: id, gameStarted: false, level: level, fk: pfk, gk: pgk, ball: ball, powers: plpower, playerVal: playerVal };
+
+
+            if (GameType == "sh") {
+                ShootingGame[GameTier].players[id] = dt;
+                for (var pl in ShootingGame[GameTier].players) {
+                    if (ShootingGame[GameTier].players[pl].level == level) {
+                        //plReady = 0;
+                        partnerId = ShootingGame[GameTier].players[pl].id;
+                        var sdt = { partnerId: id, fk: pfk, gk: pgk, ball: ball, powers: plpower, playerVal: playerVal };
+                        players[partnerId].mySocket.emit('startGame', sdt);
+
+                        ShootingGame[GameTier].players.splice(id, 1);
+                        ShootingGame[GameTier].players.splice(partnerId, 1);
+
+                        players[partnerId].plReady = 0;
+                        players[id].plReady = 0;
+                        //var mdt = { partnerId: partnerId, fk: pfk, gk: pgk, ball: ball, powers: plpower, playerVal: playerVal };
+                        var mdt = { partnerId: partnerId, fk: ShootingGame[GameTier].players[partnerId].fk, gk: ShootingGame[GameTier].players[partnerId].gk, ball: ShootingGame[GameTier].players[partnerId].ball, powers: ShootingGame[GameTier].players[partnerId].powers, playerVal: ShootingGame[GameTier].players[partnerId].playerVal };
+                        socket.emit('startGame', mdt);
+                        return;
+                    }
+                }
+
+                var rdt = { result: "none" };
+                socket.emit('tryLater', rdt);
+            }
+            else {
+                FreekickGame[GameTier].players[id] = dt;
+
+                for (var pl in FreekickGame[GameTier].players) {
+                    if (FreekickGame[GameTier].players[pl].level == level && pl != id) {
+                        partnerId = FreekickGame[GameTier].players[pl].id;
+
+
+                        players[partnerId].plReady = 0;
+                        players[id].plReady = 0;
+
+                        var partnerGoalKeeper = true;
+                        var meGoalKeeper = false;
+                        meGoalKeeper = false;
+                        //var rnd = Math.random();
+                        //if (rnd > 0.5) {
+                        //    partnerGoalKeeper = true;
+
+                        //}
+                        //else {
+                        //    meGoalKeeper = true;
+                        //}
+                        plReady = 0;
+
+                        var sdt = { partnerId: id, isGk: partnerGoalKeeper, fk: pfk, gk: pgk, ball: ball, powers: plpower, playerVal: playerVal, plReady: 0 };
+                        players[partnerId].mySocket.emit('startGame', sdt);
+
+                        var mdt = { partnerId: partnerId, isGk: meGoalKeeper, fk: FreekickGame[GameTier].players[partnerId].fk, gk: FreekickGame[GameTier].players[partnerId].gk, ball: FreekickGame[GameTier].players[partnerId].ball, powers: FreekickGame[GameTier].players[partnerId].powers, playerVal: FreekickGame[GameTier].players[partnerId].playerVal, plReady: 0 };
+                        socket.emit('startGame', mdt);
+
+                        FreekickGame[GameTier].players.splice(id, 1);
+                        FreekickGame[GameTier].players.splice(partnerId, 1);
+
+                        return;
+                    }
+                }
+
+                var rdt = { result: "none" };
+                socket.emit('tryLater', rdt);
+            }
+        }
+        catch (e) {
+            console.log("ChooseGame: "+e.message);
+        }
+    });
+
+    socket.on('canStartGame', function (data) {
+        try {
+            console.log(players[id].plReady);
+            //plReady++;
+            players[data.partnerId].plReady++;
+            players[id].plReady++;
+
+
+            var res = { players: players[id].plReady };
+
+            socket.emit("callCanStartGame", res);
+            players[data.partnerId].mySocket.emit("callCanStartGame", res);
+        }
+        catch (e) {
+            console.log("canStartGame: "+e.message);
+        }
+    });
+
+    socket.on('CancelChoose', function (data) {
+        try {
+            //console.log("disconnected ");
+            var GameTy = data.GameType;
+            var GameTi = data.GameTier;
+
+            var dt = { id: id, gameStarted: false };
+
+            if (GameTy == "sh") {
+                ShootingGame[GameTi].players.splice(id, 1);
+            }
+            else {
+                FreekickGame[GameTi].players.splice(id, 1);
+            }
+
+            GameType = "";
+            GameTier = -1;
+            partnerId = -1;
+        }
+        catch (e) {
+            console.log("CancelChoose: "+e.message);
+        }
+    });
+
+    socket.on('playerShootsBall', function (data) {
+        try {
+            //console.log(data);
+            players[data.partnerId].mySocket.emit("playerShootsBall", data);
+        }
+        catch (e) {
+            console.log("playerShootsBall: "+e.message);
+        }
+    });
+
+    socket.on('goalKeeperEnd', function (data) {
+        try {
+            //console.log(data);
+            players[data.partnerId].mySocket.emit("goalKeeperEnd", data);
+        }
+        catch (e) {
+            console.log("goalKeeperEnd: "+e.message);
+        }
+    });
+
+
+
+    socket.on('endDast', function (data) {
+        try {
+            //console.log(data);
+            players[data.partnerId].mySocket.emit("EndDast", data);
+            socket.emit("EndDast", data);
+        }
+        catch (e) {
+            console.log("endDast: "+e.message);
+        }
+    });
+
+    socket.on('partnerGetShootParameters', function (data) {
+        //console.log(data);
+        try {
+            players[data.partnerId].mySocket.emit("shootBall", data);
+            socket.emit("shootBall", data);
+        }
+        catch (e) {
+            console.log("partnerGetShootParameters: "+e.message);
+        }
+    });
+
+    socket.on('SendingGkData', function (data) {
+        //console.log(data);
+        try {
+            players[data.partnerId].mySocket.emit("recieveGkData", data);
+        }
+        catch (e) {
+            console.log("SendingGkData: "+e.message);
+        }
+    });
+
+    socket.on('getSendedGkData', function (data) {
+        try {
+            //console.log(data);
+            players[data.partnerId].mySocket.emit("getSendedGkData", data);
+        }
+        catch (e) {
+            console.log("getSendedGkData: "+e.message);
+        }
+    });
+
+    socket.on('sendEmoji', function (data) {
+        try {
+            //console.log(data);
+            players[data.partnerId].mySocket.emit("getEmoji", data);
+        }
+        catch (e) {
+            console.log("sendEmoji: "+e.message);
+        }
     });
 
 });
+
+
+
