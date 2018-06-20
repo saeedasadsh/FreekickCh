@@ -43,7 +43,7 @@ io.on('connection', function (socket) {
             players[id] = dt;
         }
         catch (e) {
-            console.log("tellType: "+e.message);
+            console.log("tellType: " + e.message);
         }
     });
 
@@ -55,7 +55,7 @@ io.on('connection', function (socket) {
             socket.emit("Alive", data);
         }
         catch (e) {
-            console.log("checkAlive: "+e.message);
+            console.log("checkAlive: " + e.message);
         }
     });
 
@@ -78,7 +78,7 @@ io.on('connection', function (socket) {
             }
         }
         catch (e) {
-            console.log("disconnect: "+e.message);
+            console.log("disconnect: " + e.message);
         }
     });
 
@@ -93,7 +93,7 @@ io.on('connection', function (socket) {
             socket.emit("playerCountResult", dt);
         }
         catch (e) {
-            console.log("getPlayersCount: "+e.message);
+            console.log("getPlayersCount: " + e.message);
         }
     });
 
@@ -177,7 +177,7 @@ io.on('connection', function (socket) {
             }
         }
         catch (e) {
-            console.log("ChooseGame: "+e.message);
+            console.log("ChooseGame: " + e.message);
         }
     });
 
@@ -195,7 +195,7 @@ io.on('connection', function (socket) {
             players[data.partnerId].mySocket.emit("callCanStartGame", res);
         }
         catch (e) {
-            console.log("canStartGame: "+e.message);
+            console.log("canStartGame: " + e.message);
         }
     });
 
@@ -219,27 +219,41 @@ io.on('connection', function (socket) {
             partnerId = -1;
         }
         catch (e) {
-            console.log("CancelChoose: "+e.message);
+            console.log("CancelChoose: " + e.message);
         }
     });
 
     socket.on('playerShootsBall', function (data) {
         try {
             //console.log(data);
-            players[data.partnerId].mySocket.emit("playerShootsBall", data);
+            if (typeof (players[data.partnerId]) != "undefined") {
+                players[data.partnerId].mySocket.emit("playerShootsBall", data);
+            }
+            else {
+
+                socket.emit("winWithPartnerLeft", data);
+            }
         }
         catch (e) {
-            console.log("playerShootsBall: "+e.message);
+            console.log("playerShootsBall: " + e.message);
+            socket.emit("winWithPartnerLeft", data);
         }
     });
 
     socket.on('goalKeeperEnd', function (data) {
         try {
             //console.log(data);
-            players[data.partnerId].mySocket.emit("goalKeeperEnd", data);
+            if (typeof (players[data.partnerId]) != "undefined") {
+                players[data.partnerId].mySocket.emit("goalKeeperEnd", data);
+            }
+            else {
+
+                socket.emit("winWithPartnerLeft", data);
+            }
         }
         catch (e) {
-            console.log("goalKeeperEnd: "+e.message);
+            console.log("goalKeeperEnd: " + e.message);
+            socket.emit("winWithPartnerLeft", data);
         }
     });
 
@@ -248,56 +262,86 @@ io.on('connection', function (socket) {
     socket.on('endDast', function (data) {
         try {
             //console.log(data);
-            players[data.partnerId].mySocket.emit("EndDast", data);
-            socket.emit("EndDast", data);
+            if (typeof (players[data.partnerId]) != "undefined") {
+                players[data.partnerId].mySocket.emit("EndDast", data);
+                socket.emit("EndDast", data);
+            }
+            else {
+
+                socket.emit("winWithPartnerLeft", data);
+            }
         }
         catch (e) {
-            console.log("endDast: "+e.message);
+            console.log("endDast: " + e.message);
+            socket.emit("winWithPartnerLeft", data);
         }
     });
 
     socket.on('partnerGetShootParameters', function (data) {
         //console.log(data);
         try {
-            players[data.partnerId].mySocket.emit("shootBall", data);
-            socket.emit("shootBall", data);
+            if (typeof (players[data.partnerId]) != "undefined") {
+                players[data.partnerId].mySocket.emit("shootBall", data);
+                socket.emit("shootBall", data);
+            }
+            else {
+
+                socket.emit("winWithPartnerLeft", data);
+            }
         }
         catch (e) {
-            console.log("partnerGetShootParameters: "+e.message);
+            console.log("partnerGetShootParameters: " + e.message);
+            socket.emit("winWithPartnerLeft", data);
         }
     });
 
     socket.on('SendingGkData', function (data) {
         //console.log(data);
         try {
-            players[data.partnerId].mySocket.emit("recieveGkData", data);
+            if (typeof (players[data.partnerId]) != "undefined") {
+                players[data.partnerId].mySocket.emit("recieveGkData", data);
+            }
+            else {
+
+                socket.emit("winWithPartnerLeft", data);
+            }
         }
         catch (e) {
-            console.log("SendingGkData: "+e.message);
+            console.log("SendingGkData: " + e.message);
+            socket.emit("winWithPartnerLeft", data);
         }
     });
 
     socket.on('getSendedGkData', function (data) {
         try {
-            //console.log(data);
-            players[data.partnerId].mySocket.emit("getSendedGkData", data);
+            if (typeof (players[data.partnerId]) != "undefined") {
+                //console.log(data);
+                players[data.partnerId].mySocket.emit("getSendedGkData", data);
+            }
+            else {
+
+                socket.emit("winWithPartnerLeft", data);
+            }
         }
         catch (e) {
-            console.log("getSendedGkData: "+e.message);
+            console.log("getSendedGkData: " + e.message);
+            socket.emit("winWithPartnerLeft", data);
         }
     });
 
     socket.on('sendEmoji', function (data) {
         try {
-            //console.log(data);
-            players[data.partnerId].mySocket.emit("getEmoji", data);
+            if (typeof (players[data.partnerId]) != "undefined") {
+                //console.log(data);
+                players[data.partnerId].mySocket.emit("getEmoji", data);
+            }
+            else {
+            }
         }
         catch (e) {
-            console.log("sendEmoji: "+e.message);
+            console.log("sendEmoji: " + e.message);
         }
     });
 
 });
-
-
 
