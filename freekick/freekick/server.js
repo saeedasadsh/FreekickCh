@@ -147,16 +147,17 @@ io.on('connection', function (socket) {
                         players[partnerId].plReady = 0;
                         players[id].plReady = 0;
 
-                        var partnerGoalKeeper = true;
+                        var partnerGoalKeeper = false;
                         var meGoalKeeper = false;
                         var rnd = Math.random();
                         if (rnd > 0.5) {
                             partnerGoalKeeper = true;
-
                         }
                         else {
                             meGoalKeeper = true;
                         }
+
+
                         plReady = 0;
 
                         var sdt = { partnerId: id, isGk: partnerGoalKeeper, fk: pfk, gk: pgk, ball: ball, powers: plpower, playerVal: playerVal, plReady: 0 };
