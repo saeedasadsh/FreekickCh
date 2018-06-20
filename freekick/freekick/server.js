@@ -139,6 +139,7 @@ io.on('connection', function (socket) {
                 FreekickGame[GameTier].players[id] = dt;
 
                 for (var pl in FreekickGame[GameTier].players) {
+                    console.log(pl +" "+ id);
                     if (FreekickGame[GameTier].players[pl].level == level && pl != id) {
                         partnerId = FreekickGame[GameTier].players[pl].id;
 
@@ -148,15 +149,14 @@ io.on('connection', function (socket) {
 
                         var partnerGoalKeeper = true;
                         var meGoalKeeper = false;
-                        meGoalKeeper = false;
-                        //var rnd = Math.random();
-                        //if (rnd > 0.5) {
-                        //    partnerGoalKeeper = true;
+                        var rnd = Math.random();
+                        if (rnd > 0.5) {
+                            partnerGoalKeeper = true;
 
-                        //}
-                        //else {
-                        //    meGoalKeeper = true;
-                        //}
+                        }
+                        else {
+                            meGoalKeeper = true;
+                        }
                         plReady = 0;
 
                         var sdt = { partnerId: id, isGk: partnerGoalKeeper, fk: pfk, gk: pgk, ball: ball, powers: plpower, playerVal: playerVal, plReady: 0 };
