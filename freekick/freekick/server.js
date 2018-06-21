@@ -350,7 +350,7 @@ io.on('connection', function (socket) {
 
     try {
         var timeout = setInterval(function () {
-            for (i = 0; i < 6; i++)
+            for (i = 1; i < 7; i++)
             {
                 for (var pl in FreekickGame[i].players) {
                     if (typeof (FreekickGame[i].players[pl]) == "undefined") {
@@ -359,7 +359,7 @@ io.on('connection', function (socket) {
                 }
             }
 
-            for (i = 0; i < 6; i++) {
+            for (i = 1; i < 7; i++) {
                 for (var pl in ShootingGame[i].players) {
                     if (typeof (ShootingGame[i].players[pl]) == "undefined") {
                         ShootingGame[i].players.splice(pl, 1);
