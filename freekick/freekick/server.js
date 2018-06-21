@@ -346,3 +346,37 @@ io.on('connection', function (socket) {
 
 });
 
+(function () {
+
+    try {
+        var timeout = setInterval(function () {
+            for (i = 0; i < 6; i++)
+            {
+                for (var pl in FreekickGame[i].players) {
+                    if (typeof (FreekickGame[i].players[pl]) == "undefined") {
+                        FreekickGame[i].players.splice(pl, 1);
+                    }
+                }
+            }
+
+            for (i = 0; i < 6; i++) {
+                for (var pl in ShootingGame[i].players) {
+                    if (typeof (ShootingGame[i].players[pl]) == "undefined") {
+                        ShootingGame[i].players.splice(pl, 1);
+                    }
+                }
+            }
+
+            for (var pl in players) {
+                if (typeof (players[pl]) == "undefined") {
+                    players.splice(pl, 1);
+                }
+            }
+
+        }, 5000);
+    }
+    catch (e) {
+        console.log("2: " + e.message);
+    }
+})();
+
