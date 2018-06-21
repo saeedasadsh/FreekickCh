@@ -139,10 +139,8 @@ io.on('connection', function (socket) {
                 FreekickGame[GameTier].players[id] = dt;
 
                 for (var pl in FreekickGame[GameTier].players) {
-                    console.log(pl + " " + id);
-                    console.log(FreekickGame[GameTier].players[pl]);
                     if (typeof (FreekickGame[GameTier].players[pl]) != "undefined")
-                    if (FreekickGame[GameTier].players[pl].level == level && pl != id) {
+                        if (FreekickGame[GameTier].players[pl].level == level && FreekickGame[GameTier].players[pl].id != id) {
                         partnerId = FreekickGame[GameTier].players[pl].id;
 
 
