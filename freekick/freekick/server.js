@@ -31,7 +31,7 @@ io.on('connection', function (socket) {
     var partnerId = -1;
     var GameTier = -1;
     var GameType = "";
-    var partnerDt;
+    var partnerDt = null;
 
     socket.on("tellType", function (data) {
         try {
