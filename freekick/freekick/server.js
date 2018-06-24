@@ -65,9 +65,8 @@ io.on('connection', function (socket) {
 
     socket.on('disconnect', function (data) {
         try {
-            console.log("disconnected ");
-            if (partnerId > 0 && typeof (players[partnerId]) != "undefined")
-            {
+            console.log("disconnected partnerId: " + partnerId + " players[partnerId].mySocket: " + players[partnerId].mySocket);
+            if (partnerId > 0 && typeof (players[partnerId]) != "undefined") {
                 players[partnerId].mySocket.emit("winWithPartnerLeft", data);
             }
 
@@ -147,36 +146,37 @@ io.on('connection', function (socket) {
                     if (typeof (FreekickGame[GameTier].players[pl]) != "undefined")
                         if ((FreekickGame[GameTier].players[pl].level < level + 1 || FreekickGame[GameTier].players[pl].level > level - 1) && FreekickGame[GameTier].players[pl].id != id) {
                             partnerId = FreekickGame[GameTier].players[pl].id;
+                            if (typeof (players[partnerId]) != "undefined") {
+                                players[partnerId].plReady = 0;
+                                players[id].plReady = 0;
 
-                            players[partnerId].plReady = 0;
-                            players[id].plReady = 0;
+                                var partnerGoalKeeper = false;
+                                var meGoalKeeper = false;
+                                var rnd = Math.random();
+                                if (rnd > 0.5) {
+                                    partnerGoalKeeper = true;
+                                }
+                                else {
+                                    meGoalKeeper = true;
+                                }
 
-                            var partnerGoalKeeper = false;
-                            var meGoalKeeper = false;
-                            var rnd = Math.random();
-                            if (rnd > 0.5) {
                                 partnerGoalKeeper = true;
+                                meGoalKeeper = false;
+
+
+                                plReady = 0;
+
+                                var sdt = { partnerId: id, isGk: partnerGoalKeeper, fk: pfk, gk: pgk, ball: ball, powers: plpower, playerVal: playerVal, plReady: 0 };
+                                players[partnerId].mySocket.emit('startGame', sdt);
+
+                                var mdt = { partnerId: partnerId, isGk: meGoalKeeper, fk: FreekickGame[GameTier].players[partnerId].fk, gk: FreekickGame[GameTier].players[partnerId].gk, ball: FreekickGame[GameTier].players[partnerId].ball, powers: FreekickGame[GameTier].players[partnerId].powers, playerVal: FreekickGame[GameTier].players[partnerId].playerVal, plReady: 0 };
+                                socket.emit('startGame', mdt);
+
+                                delete FreekickGame[GameTier].players[id];
+                                delete FreekickGame[GameTier].players[partnerId];
+
+                                return;
                             }
-                            else {
-                                meGoalKeeper = true;
-                            }
-
-                            partnerGoalKeeper = true;
-                            meGoalKeeper = false;
-
-
-                            plReady = 0;
-
-                            var sdt = { partnerId: id, isGk: partnerGoalKeeper, fk: pfk, gk: pgk, ball: ball, powers: plpower, playerVal: playerVal, plReady: 0 };
-                            players[partnerId].mySocket.emit('startGame', sdt);
-
-                            var mdt = { partnerId: partnerId, isGk: meGoalKeeper, fk: FreekickGame[GameTier].players[partnerId].fk, gk: FreekickGame[GameTier].players[partnerId].gk, ball: FreekickGame[GameTier].players[partnerId].ball, powers: FreekickGame[GameTier].players[partnerId].powers, playerVal: FreekickGame[GameTier].players[partnerId].playerVal, plReady: 0 };
-                            socket.emit('startGame', mdt);
-
-                            delete  FreekickGame[GameTier].players[id];
-                            delete FreekickGame[GameTier].players[partnerId];
-
-                            return;
                         }
                 }
 
