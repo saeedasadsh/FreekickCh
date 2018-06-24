@@ -31,6 +31,7 @@ io.on('connection', function (socket) {
     var partnerId = -1;
     var GameTier = -1;
     var GameType = "";
+    var partnerDt;
 
     socket.on("tellType", function (data) {
         try {
@@ -65,11 +66,6 @@ io.on('connection', function (socket) {
 
     socket.on('disconnect', function (data) {
         try {
-            console.log("disconnected partnerId: " + partnerId + " players[partnerId].mySocket: " + players[partnerId].mySocket);
-            if (partnerId > 0 && typeof (players[partnerId]) != "undefined") {
-                players[partnerId].mySocket.emit("winWithPartnerLeft", data);
-            }
-
             delete players[id];
             if (GameTier > 0) {
                 if (GameType == "sh") {
@@ -78,6 +74,11 @@ io.on('connection', function (socket) {
                 else {
                     delete FreekickGame[GameTier].players[id];
                 }
+            }
+
+            console.log("disconnected partnerId: " + partnerId + " players[partnerId].mySocket: " + players[partnerId].id);
+            if (partnerId > 0 && typeof (players[partnerId]) != "undefined") {
+                partnerDt.mySocket.emit("winWithPartnerLeft", data);
             }
         }
         catch (e) {
@@ -168,7 +169,7 @@ io.on('connection', function (socket) {
 
                                 var sdt = { partnerId: id, isGk: partnerGoalKeeper, fk: pfk, gk: pgk, ball: ball, powers: plpower, playerVal: playerVal, plReady: 0 };
                                 players[partnerId].mySocket.emit('startGame', sdt);
-
+                                partnerDt = players[partnerId];
                                 var mdt = { partnerId: partnerId, isGk: meGoalKeeper, fk: FreekickGame[GameTier].players[partnerId].fk, gk: FreekickGame[GameTier].players[partnerId].gk, ball: FreekickGame[GameTier].players[partnerId].ball, powers: FreekickGame[GameTier].players[partnerId].powers, playerVal: FreekickGame[GameTier].players[partnerId].playerVal, plReady: 0 };
                                 socket.emit('startGame', mdt);
 
