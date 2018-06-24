@@ -285,6 +285,17 @@ io.on('connection', function (socket) {
         }
     });
 
+    socket.on('endGame', function (data) {
+        try {
+            GameType = "";
+            GameTier = -1;
+            partnerId = -1;
+        }
+        catch (e) {
+            console.log("endGame: " + e.message);
+        }
+    });
+
     socket.on('partnerGetShootParameters', function (data) {
         //console.log(data);
         try {
