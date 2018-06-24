@@ -66,14 +66,18 @@ io.on('connection', function (socket) {
     socket.on('disconnect', function (data) {
         try {
             console.log("disconnected ");
+            if (partnerId > 0 && typeof (players[partnerId]) != "undefined")
+            {
+                players[partnerId].mySocket.emit("winWithPartnerLeft", data);
+            }
 
-            players.splice(id, 1);
+            delete players[id];
             if (GameTier > 0) {
                 if (GameType == "sh") {
-                    ShootingGame[GameTier].players.splice(id, 1);
+                    delete ShootingGame[GameTier].players[id];
                 }
                 else {
-                    FreekickGame[GameTier].players.splice(id, 1);
+                    delete FreekickGame[GameTier].players[id];
                 }
             }
         }
@@ -136,41 +140,44 @@ io.on('connection', function (socket) {
                 socket.emit('tryLater', rdt);
             }
             else {
+                console.log(id);
                 FreekickGame[GameTier].players[id] = dt;
 
                 for (var pl in FreekickGame[GameTier].players) {
                     if (typeof (FreekickGame[GameTier].players[pl]) != "undefined")
-                        if (FreekickGame[GameTier].players[pl].level == level && FreekickGame[GameTier].players[pl].id != id) {
-                        partnerId = FreekickGame[GameTier].players[pl].id;
+                        if ((FreekickGame[GameTier].players[pl].level < level + 1 || FreekickGame[GameTier].players[pl].level > level - 1) && FreekickGame[GameTier].players[pl].id != id) {
+                            partnerId = FreekickGame[GameTier].players[pl].id;
 
+                            players[partnerId].plReady = 0;
+                            players[id].plReady = 0;
 
-                        players[partnerId].plReady = 0;
-                        players[id].plReady = 0;
+                            var partnerGoalKeeper = false;
+                            var meGoalKeeper = false;
+                            var rnd = Math.random();
+                            if (rnd > 0.5) {
+                                partnerGoalKeeper = true;
+                            }
+                            else {
+                                meGoalKeeper = true;
+                            }
 
-                        var partnerGoalKeeper = false;
-                        var meGoalKeeper = false;
-                        var rnd = Math.random();
-                        if (rnd > 0.5) {
                             partnerGoalKeeper = true;
+                            meGoalKeeper = false;
+
+
+                            plReady = 0;
+
+                            var sdt = { partnerId: id, isGk: partnerGoalKeeper, fk: pfk, gk: pgk, ball: ball, powers: plpower, playerVal: playerVal, plReady: 0 };
+                            players[partnerId].mySocket.emit('startGame', sdt);
+
+                            var mdt = { partnerId: partnerId, isGk: meGoalKeeper, fk: FreekickGame[GameTier].players[partnerId].fk, gk: FreekickGame[GameTier].players[partnerId].gk, ball: FreekickGame[GameTier].players[partnerId].ball, powers: FreekickGame[GameTier].players[partnerId].powers, playerVal: FreekickGame[GameTier].players[partnerId].playerVal, plReady: 0 };
+                            socket.emit('startGame', mdt);
+
+                            delete  FreekickGame[GameTier].players[id];
+                            delete FreekickGame[GameTier].players[partnerId];
+
+                            return;
                         }
-                        else {
-                            meGoalKeeper = true;
-                        }
-
-
-                        plReady = 0;
-
-                        var sdt = { partnerId: id, isGk: partnerGoalKeeper, fk: pfk, gk: pgk, ball: ball, powers: plpower, playerVal: playerVal, plReady: 0 };
-                        players[partnerId].mySocket.emit('startGame', sdt);
-
-                        var mdt = { partnerId: partnerId, isGk: meGoalKeeper, fk: FreekickGame[GameTier].players[partnerId].fk, gk: FreekickGame[GameTier].players[partnerId].gk, ball: FreekickGame[GameTier].players[partnerId].ball, powers: FreekickGame[GameTier].players[partnerId].powers, playerVal: FreekickGame[GameTier].players[partnerId].playerVal, plReady: 0 };
-                        socket.emit('startGame', mdt);
-
-                        FreekickGame[GameTier].players.splice(id, 1);
-                        FreekickGame[GameTier].players.splice(partnerId, 1);
-
-                        return;
-                    }
                 }
 
                 var rdt = { result: "none" };
@@ -209,10 +216,10 @@ io.on('connection', function (socket) {
             var dt = { id: id, gameStarted: false };
 
             if (GameTy == "sh") {
-                ShootingGame[GameTi].players.splice(id, 1);
+                delete ShootingGame[GameTi].players[id];
             }
             else {
-                FreekickGame[GameTi].players.splice(id, 1);
+                delete FreekickGame[GameTi].players[id];
             }
 
             GameType = "";
@@ -350,11 +357,10 @@ io.on('connection', function (socket) {
 
     try {
         var timeout = setInterval(function () {
-            for (i = 1; i < 7; i++)
-            {
+            for (i = 1; i < 7; i++) {
                 for (var pl in FreekickGame[i].players) {
                     if (typeof (FreekickGame[i].players[pl]) == "undefined") {
-                        FreekickGame[i].players.splice(pl, 1);
+                        delete FreekickGame[i].players[pl];
                     }
                 }
             }
@@ -362,14 +368,14 @@ io.on('connection', function (socket) {
             for (i = 1; i < 7; i++) {
                 for (var pl in ShootingGame[i].players) {
                     if (typeof (ShootingGame[i].players[pl]) == "undefined") {
-                        ShootingGame[i].players.splice(pl, 1);
+                        delete ShootingGame[i].players[pl];
                     }
                 }
             }
 
             for (var pl in players) {
                 if (typeof (players[pl]) == "undefined") {
-                    players.splice(pl, 1);
+                    delete players[pl];
                 }
             }
 
